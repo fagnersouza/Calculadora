@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ public class MainView extends ActionBarActivity {
     private boolean signal = true;
     private String lastResult;
     private StringBuilder currentTerm;
+    private boolean formatComma;
 
     enum OPERATION{
         SUM("+"),
@@ -39,7 +41,7 @@ public class MainView extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tela_principal);
+        setContentView(R.layout.activity_main_view);
 
         loadViewCache();
         erase(null);
@@ -66,7 +68,7 @@ public class MainView extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_tela_principal, menu);
+        getMenuInflater().inflate(R.menu.menu_main_view, menu);
         return true;
     }
 
@@ -75,6 +77,7 @@ public class MainView extends ActionBarActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        /*
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -83,6 +86,9 @@ public class MainView extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+        */
+
+        return false;
     }
 
     public void typeDigit(View view){
@@ -118,13 +124,16 @@ public class MainView extends ActionBarActivity {
         signal = true;
         lastResult = "";
         currentTerm = new StringBuilder();
+        formatComma = false;
     }
 
 
     public void punctuate(View view){
+        formatComma = true;
         if(!point) {
             TextView text = (TextView) viewCache.get(R.id.txtOutput);
             text.setText(text.getText()+",");
+            currentTerm.append(",");
             point = true;
         }
     }
@@ -156,12 +165,12 @@ public class MainView extends ActionBarActivity {
         }else {
             String sum = "";
             sum = text.getText().toString();
-            text.setText(brackets(sum)+target.toString());
+            text.setText(sum+target.toString());
 
             if(lastResult.length() == 0)
-                lastResult = calculate(sum).toString();
+                lastResult = formatResult(calculate(sum));
             else
-                lastResult = calculate(lastResult+operation+currentTerm).toString();
+                lastResult = formatResult(calculate(lastResult + operation + currentTerm));
 
             text = (TextView) viewCache.get(R.id.txtResult);
             text.setText("="+ lastResult);
@@ -169,6 +178,20 @@ public class MainView extends ActionBarActivity {
 
         operation = target;
         currentTerm = new StringBuilder();
+        point = false;
+    }
+
+    private String formatResult(Double value){
+        String pattern;
+
+        if(formatComma)
+            pattern = "#.##";
+        else
+            pattern = "#";
+
+        DecimalFormat df = new DecimalFormat(pattern);
+
+        return df.format(value);
     }
 
     private String brackets(String data){
@@ -176,19 +199,27 @@ public class MainView extends ActionBarActivity {
     }
 
     private Double calculate(String dado){
+        dado = dado.replace(",",".");
+        String signal = "";
+
+        if(dado.startsWith("+") || dado.startsWith("-")) {
+            signal = dado.substring(0,1);
+            dado = dado.substring(1);
+        }
+
         String [] terms = dado.split("[-|+|x|/]");
 
         if(dado.contains("-"))
-            return Double.valueOf(terms[0]) - Double.valueOf(terms[1]);
+            return Double.valueOf(signal+terms[0]) - Double.valueOf(terms[1]);
 
         if(dado.contains("+"))
-            return Double.valueOf(terms[0]) + Double.valueOf(terms[1]);
+            return Double.valueOf(signal+terms[0]) + Double.valueOf(terms[1]);
 
         if(dado.contains("x"))
-            return Double.valueOf(terms[0]) * Double.valueOf(terms[1]);
+            return Double.valueOf(signal+terms[0]) * Double.valueOf(terms[1]);
 
         if(dado.contains("/"))
-            return Double.valueOf(terms[0]) / Double.valueOf(terms[1]);
+            return Double.valueOf(signal+terms[0]) / Double.valueOf(terms[1]);
 
         return 0.0;
     }
@@ -205,12 +236,12 @@ public class MainView extends ActionBarActivity {
             TextView output = (TextView) viewCache.get(R.id.txtOutput);
 
             sum = output.getText().toString();
-            output.setText(brackets(sum));
+            output.setText(sum);
 
-            lastResult = calculate(sum).toString();
+            lastResult = formatResult(calculate(sum));
         }else {
             if(operation != null && currentTerm.length() != 0)
-                lastResult = calculate(lastResult + operation + currentTerm).toString();
+                lastResult = formatResult(calculate(lastResult + operation + currentTerm));
         }
 
         result.setText("="+lastResult);

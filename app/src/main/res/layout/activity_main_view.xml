@@ -74,7 +74,7 @@
         android:orientation="horizontal">
 
         <Button
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:layout_width="0dp"
             android:layout_height="fill_parent"
             android:text="C"
@@ -82,7 +82,8 @@
             android:textColor="#ffffffff"
             android:textSize="@dimen/abc_action_button_min_width_overflow_material"
             android:textAlignment="center"
-            android:onClick="erase" />
+            android:onClick="erase"
+            android:backgroundTint="#FFA500" />
 
         <Button
             android:layout_weight="1"
@@ -92,17 +93,8 @@
             android:id="@+id/btChangeSignal"
             android:textColor="#ffffffff"
             android:textSize="@dimen/abc_action_button_min_width_overflow_material"
-            android:onClick="changeSignal" />
-
-        <Button
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            android:text="%"
-            android:id="@+id/btPercentage"
-            android:textColor="#ffffffff"
-            android:textSize="@dimen/abc_action_button_min_width_overflow_material"
-            android:onClick="percentage" />
+            android:onClick="changeSignal"
+            android:backgroundTint="#808080" />
 
         <Button
             android:layout_weight="1"
@@ -112,7 +104,8 @@
             android:id="@+id/btRatio"
             android:textColor="#ffffffff"
             android:textSize="@dimen/abc_action_button_min_width_overflow_material"
-            android:onClick="divide" />
+            android:onClick="divide"
+            android:backgroundTint="#808080" />
     </LinearLayout>
 
     <LinearLayout
@@ -159,7 +152,8 @@
             android:id="@+id/btProduct"
             android:textColor="#ffffffff"
             android:textSize="@dimen/abc_action_button_min_width_overflow_material"
-            android:onClick="multiply" />
+            android:onClick="multiply"
+            android:backgroundTint="#808080" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="fill_parent"
@@ -205,7 +199,8 @@
             android:id="@+id/btSubtraction"
             android:textColor="#ffffffff"
             android:textSize="@dimen/abc_action_button_min_width_overflow_material"
-            android:onClick="subtract" />
+            android:onClick="subtract"
+            android:backgroundTint="#808080" />
     </LinearLayout>
 
     <LinearLayout
@@ -252,7 +247,8 @@
             android:id="@+id/btSum"
             android:textColor="#ffffffff"
             android:textSize="@dimen/abc_action_button_min_width_overflow_material"
-            android:onClick="sum" />
+            android:onClick="sum"
+            android:backgroundTint="#808080" />
     </LinearLayout>
 
     <LinearLayout
@@ -277,7 +273,7 @@
             android:layout_height="fill_parent"
             android:text=","
             android:id="@+id/btComma"
-            android:textColor="#ffffffff"
+            android:textColor="#ff000000"
             android:textSize="@dimen/abc_action_button_min_width_overflow_material"
             android:onClick="punctuate" />
 
@@ -289,7 +285,8 @@
             android:id="@+id/btResult"
             android:textColor="#ffffffff"
             android:textSize="@dimen/abc_action_button_min_width_overflow_material"
-            android:onClick="result" />
+            android:onClick="result"
+            android:backgroundTint="#808080" />
     </LinearLayout>
 
 </LinearLayout>
