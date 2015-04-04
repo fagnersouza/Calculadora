@@ -4,7 +4,10 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
@@ -20,6 +23,7 @@ public class MainView extends ActionBarActivity {
     private String lastResult;
     private StringBuilder currentTerm;
     private boolean formatComma;
+    private boolean blocked;
 
     enum OPERATION{
         SUM("+"),
@@ -37,6 +41,7 @@ public class MainView extends ActionBarActivity {
             return this.operator;
         }
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +97,9 @@ public class MainView extends ActionBarActivity {
     }
 
     public void typeDigit(View view){
+        if(blocked)
+            return;
+
         TextView text = (TextView)viewCache.get(R.id.txtOutput);
         String digit = "";
         switch (view.getId()){
@@ -125,10 +133,14 @@ public class MainView extends ActionBarActivity {
         lastResult = "";
         currentTerm = new StringBuilder();
         formatComma = false;
+        blocked = false;
     }
 
 
     public void punctuate(View view){
+        if(currentTerm.length() == 0)
+            return;
+
         formatComma = true;
         if(!point) {
             TextView text = (TextView) viewCache.get(R.id.txtOutput);
@@ -157,7 +169,9 @@ public class MainView extends ActionBarActivity {
     private void process(OPERATION target){
         TextView text = (TextView) viewCache.get(R.id.txtOutput);
 
-        if(text.length() == 0)
+        if(     text.length() == 0 ||
+                (currentTerm.length() == 0 && operation != null) ||
+                (currentTerm.toString().endsWith(",")))
             return;
 
         if(operation == null){
@@ -179,47 +193,81 @@ public class MainView extends ActionBarActivity {
         operation = target;
         currentTerm = new StringBuilder();
         point = false;
+        blocked = false;
+        signal = true;
     }
 
     private String formatResult(Double value){
         String pattern;
 
-        if(formatComma)
+      //  if(formatComma || isReal(value))
             pattern = "#.##";
-        else
-            pattern = "#";
+     //   else
+      //      pattern = "#";
 
         DecimalFormat df = new DecimalFormat(pattern);
 
         return df.format(value);
     }
 
+    private boolean isReal(Double value){
+       Integer round = value.intValue();
+        if(value == round.doubleValue())
+            return false;
+        else
+            return true;
+    }
+
     private String brackets(String data){
         return "(" + data + ")";
     }
 
-    private Double calculate(String dado){
-        dado = dado.replace(",",".");
-        String signal = "";
+    private Double calculate(String value){
+        value = value.replace(",",".");
 
-        if(dado.startsWith("+") || dado.startsWith("-")) {
-            signal = dado.substring(0,1);
-            dado = dado.substring(1);
+        StringBuilder dado = new StringBuilder(value);
+        String [] signal = {"",""};
+        int index;
+
+        String [] trash = {"(",")"};
+
+        for(int i = 0; i< trash.length;i++){
+            for(int ii = 0;ii<2;ii++) {
+                index = dado.indexOf(trash[i]);
+                if (index > (-1))
+                    dado.deleteCharAt(index);
+            }
         }
 
-        String [] terms = dado.split("[-|+|x|/]");
+        if(dado.toString().startsWith("+") || dado.toString().startsWith("-")) {
+            signal[0] = dado.substring(0,1);
+            dado.deleteCharAt(0);
+        }
 
-        if(dado.contains("-"))
-            return Double.valueOf(signal+terms[0]) - Double.valueOf(terms[1]);
+        trash = new String[]{"+-","--","x-","/-"};
 
-        if(dado.contains("+"))
-            return Double.valueOf(signal+terms[0]) + Double.valueOf(terms[1]);
+        for(int i = 0;i < trash.length;i++){
+            index = dado.indexOf(trash[i]);
+            if(index > (-1)){
+                signal[1] = "-";
+                dado.deleteCharAt(index+1);
+                break;
+            }
+        }
 
-        if(dado.contains("x"))
-            return Double.valueOf(signal+terms[0]) * Double.valueOf(terms[1]);
+        String [] terms = dado.toString().split("[-|+|x|/]");
 
-        if(dado.contains("/"))
-            return Double.valueOf(signal+terms[0]) / Double.valueOf(terms[1]);
+        if(dado.indexOf("-") > (-1))
+            return Double.valueOf(signal[0]+terms[0]) - Double.valueOf(signal[1]+terms[1]);
+
+        if(dado.indexOf("+") > (-1))
+            return Double.valueOf(signal[0]+terms[0]) + Double.valueOf(signal[1]+terms[1]);
+
+        if(dado.indexOf("x") > (-1))
+            return Double.valueOf(signal[0]+terms[0]) * Double.valueOf(signal[1]+terms[1]);
+
+        if(dado.indexOf("/") > (-1))
+            return Double.valueOf(signal[0]+terms[0]) / Double.valueOf(signal[1]+terms[1]);
 
         return 0.0;
     }
@@ -230,6 +278,9 @@ public class MainView extends ActionBarActivity {
 
     public void result(View view){
         TextView result = (TextView) viewCache.get(R.id.txtResult);
+
+        if(operation == null || currentTerm.length() == 0 || currentTerm.toString().endsWith(","))
+            return;
 
         if(lastResult.length() == 0) {
             String sum = "";
@@ -247,17 +298,53 @@ public class MainView extends ActionBarActivity {
         result.setText("="+lastResult);
         currentTerm = new StringBuilder();
         operation = null;
+        blocked = true;
     }
 
     public void changeSignal(View view){
+        if(currentTerm.length() == 0)
+            return;
+
+        TextView text = (TextView) viewCache.get(R.id.txtOutput);
+        String aux = text.getText().toString();
+
         if(signal){
             signal = false;
-            TextView text = (TextView) viewCache.get(R.id.txtOutput);
-            text.setText("-"+text.getText());
+
+            aux = aux.substring(0,aux.length() - currentTerm.length());
+            currentTerm.insert(0,"-");
+            aux = aux+"("+currentTerm.toString() + ")";
+            text.setText(aux);
         }else{
             signal = true;
-            TextView text = (TextView) viewCache.get(R.id.txtOutput);
-            text.setText(text.getText().toString().substring(1));
+
+            aux = aux.substring(0,aux.length() - currentTerm.length()-2);
+            currentTerm.deleteCharAt(0);
+            aux = aux+currentTerm.toString();
+            text.setText(aux);
         }
+    }
+
+    public void link(View view){
+
+
+    }
+
+    public void backspace(View view){
+        if(currentTerm.length() == 0)
+            return;
+
+        TextView text = (TextView) viewCache.get(R.id.txtOutput);
+        String aux = text.getText().toString();
+
+        if(currentTerm.toString().startsWith("-"))
+            aux = aux.substring(0,aux.length() - currentTerm.length()-2);
+        else
+            aux = aux.substring(0,aux.length() - currentTerm.length());
+
+        currentTerm = new StringBuilder();
+        text.setText(aux);
+        signal = true;
+        point = false;
     }
 }

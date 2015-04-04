@@ -91,7 +91,7 @@
             android:text="C"
             android:id="@+id/btErase"
             android:textColor="#ffffffff"
-            android:textSize="25dp"
+            android:textSize="@dimen/abc_action_button_min_width_overflow_material"
             android:textAlignment="center"
             android:onClick="erase"
             style="?android:attr/borderlessButtonStyle"
